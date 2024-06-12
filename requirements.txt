@@ -5,3 +5,5 @@ pydantic
 streamlit
 pandas
 requests
+streamlit_authenticator
+pyyaml
