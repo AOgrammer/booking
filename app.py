@@ -27,7 +27,12 @@ authenticator.login()
 if st.session_state["authentication_status"]:
     with st.sidebar:
         authenticator.logout("ログアウト")
-        page = st.selectbox('ページを選択', ['ユーザー登録', '会議室登録', '予約登録', 'ユーザー更新・削除', '会議室更新・削除', '予約更新・削除'])
+        user_name = st.session_state['name']
+        user_roles = config['credentials']['roles'][user_name]  # ユーザーのロールを取得
+
+        page = st.selectbox('ページを選択', 
+                            ['予約登録'] if 'user' in user_roles else  # 予約はユーザーのみ許可
+                            ['ユーザー登録', '会議室登録', '予約登録', 'ユーザー更新・削除', '会議室更新・削除', '予約更新・削除'])
     
 
     if page == 'ユーザー登録':
@@ -40,7 +45,7 @@ if st.session_state["authentication_status"]:
             submit_button = st.form_submit_button(label='ユーザー登録')
 
         if submit_button:
-            url = 'https://booking-qbhb.onrender.com/users'
+            url = 'http://127.0.0.1:8000/users'
             res = requests.post(url, data=json.dumps(data))
             if res.status_code == 200:
                 st.success('ユーザー登録完了')
@@ -59,7 +64,7 @@ if st.session_state["authentication_status"]:
             submit_button = st.form_submit_button(label='会議室登録')
 
         if submit_button:
-            url = 'https://booking-qbhb.onrender.com/rooms'
+            url = 'http://127.0.0.1:8000/rooms'
             res = requests.post(url, data=json.dumps(data))
             if res.status_code == 200:
                 st.success('会議室登録完了')
@@ -67,12 +72,12 @@ if st.session_state["authentication_status"]:
 
     elif page == '予約登録':
         st.title('会議室予約画面')
-        url_users = 'https://booking-qbhb.onrender.com/users'
+        url_users = 'http://127.0.0.1:8000/users'
         res = requests.get(url_users)
         users = res.json()
         users_name = {user['username']: user['user_id'] for user in users}
 
-        url_rooms = 'https://booking-qbhb.onrender.com/rooms'
+        url_rooms = 'http://127.0.0.1:8000/rooms'
         res = requests.get(url_rooms)
         rooms = res.json()
         rooms_name = {room['room_name']: {'room_id': room['room_id'], 'capacity': room['capacity']} for room in rooms}
@@ -82,7 +87,7 @@ if st.session_state["authentication_status"]:
         df_rooms.columns = ['会議室名', '定員', '会議室ID']
         st.table(df_rooms)
 
-        url_bookings = 'https://booking-qbhb.onrender.com/bookings'
+        url_bookings = 'http://127.0.0.1:8000/bookings'
         res = requests.get(url_bookings)
         bookings = res.json()
         df_bookings = pd.DataFrame(bookings)
@@ -144,7 +149,7 @@ if st.session_state["authentication_status"]:
             elif start_time < datetime.time(hour=9, minute=0, second=0) or end_time > datetime.time(hour=20, minute=0, second=0):
                 st.error('利用時間は9:00~20:00になります。')
             else:
-                url = 'https://booking-qbhb.onrender.com/bookings'
+                url = 'http://127.0.0.1:8000/bookings'
                 res = requests.post(url, data=json.dumps(data))
                 if res.status_code == 200:
                     st.success('予約完了しました')
@@ -153,7 +158,7 @@ if st.session_state["authentication_status"]:
 
     elif page == 'ユーザー更新・削除':
         st.title('ユーザー更新・削除画面')
-        url_users = 'https://booking-qbhb.onrender.com/users'
+        url_users = 'http://127.0.0.1:8000/users'
         res = requests.get(url_users)
         users = res.json()
         users_name = {user['username']: user['user_id'] for user in users}
@@ -166,7 +171,7 @@ if st.session_state["authentication_status"]:
             update_button = st.form_submit_button(label='ユーザー更新')
 
         if update_button:
-            url = f'https://booking-qbhb.onrender.com/users/{user_id}'
+            url = f'http://127.0.0.1:8000/users/{user_id}'
             res = requests.put(url, data=json.dumps({'username': new_username}))
             if res.status_code == 200:
                 st.success('ユーザー情報が更新されました')
@@ -176,7 +181,7 @@ if st.session_state["authentication_status"]:
             delete_button = st.form_submit_button(label='ユーザー削除')
 
         if delete_button:
-            url = f'https://booking-qbhb.onrender.com/users/{user_id}'
+            url = f'http://127.0.0.1:8000/users/{user_id}'
             res = requests.delete(url)
             if res.status_code == 200:
                 st.success('ユーザーが削除されました')
@@ -184,7 +189,7 @@ if st.session_state["authentication_status"]:
 
     elif page == '会議室更新・削除':
         st.title('会議室更新・削除画面')
-        url_rooms = 'https://booking-qbhb.onrender.com/rooms'
+        url_rooms = 'http://127.0.0.1:8000/rooms'
         res = requests.get(url_rooms)
         rooms = res.json()
         rooms_name = {room['room_name']: room['room_id'] for room in rooms}
@@ -198,7 +203,7 @@ if st.session_state["authentication_status"]:
             update_button = st.form_submit_button(label='会議室更新')
 
         if update_button:
-            url = f'https://booking-qbhb.onrender.com/rooms/{room_id}'
+            url = f'http://127.0.0.1:8000/rooms/{room_id}'
             res = requests.put(url, data=json.dumps({'room_name': new_room_name, 'capacity': new_capacity}))
             if res.status_code == 200:
                 st.success('会議室情報が更新されました')
@@ -208,7 +213,7 @@ if st.session_state["authentication_status"]:
             delete_button = st.form_submit_button(label='会議室削除')
 
         if delete_button:
-            url = f'https://booking-qbhb.onrender.com/rooms/{room_id}'
+            url = f'http://127.0.0.1:8000/rooms/{room_id}'
             res = requests.delete(url)
             if res.status_code == 200:
                 st.success('会議室が削除されました')
@@ -216,7 +221,7 @@ if st.session_state["authentication_status"]:
 
     elif page == '予約更新・削除':
         st.title('予約更新・削除画面')
-        url_bookings = 'https://booking-qbhb.onrender.com/bookings'
+        url_bookings = 'http://127.0.0.1:8000/bookings'
         res = requests.get(url_bookings)
         bookings = res.json()
         bookings_id = {f"{booking['booking_id']} - {booking['start_datetime']} to {booking['end_datetime']}": booking['booking_id'] for booking in bookings}
@@ -224,12 +229,12 @@ if st.session_state["authentication_status"]:
         selected_booking = st.selectbox('予約を選択', bookings_id.keys())
         booking_id = bookings_id[selected_booking]
 
-        url_users = 'https://booking-qbhb.onrender.com/users'
+        url_users = 'http://127.0.0.1:8000/users'
         res = requests.get(url_users)
         users = res.json()
         users_name = {user['username']: user['user_id'] for user in users}
 
-        url_rooms = 'https://booking-qbhb.onrender.com/rooms'
+        url_rooms = 'http://127.0.0.1:8000/rooms'
         res = requests.get(url_rooms)
         rooms = res.json()
         rooms_name = {room['room_name']: {'room_id': room['room_id'], 'capacity': room['capacity']} for room in rooms}
@@ -268,7 +273,7 @@ if st.session_state["authentication_status"]:
             elif start_time < datetime.time(hour=9, minute=0, second=0) or end_time > datetime.time(hour=20, minute=0, second=0):
                 st.error('利用時間は9:00~20:00になります。')
             else:
-                url = f'https://booking-qbhb.onrender.com/bookings/{booking_id}'
+                url = f'http://127.0.0.1:8000/bookings/{booking_id}'
                 res = requests.put(url, data=json.dumps(data))
                 if res.status_code == 200:
                     st.success('予約が更新されました')
@@ -278,7 +283,7 @@ if st.session_state["authentication_status"]:
             delete_button = st.form_submit_button(label='予約削除')
 
         if delete_button:
-            url = f'https://booking-qbhb.onrender.com/bookings/{booking_id}'
+            url = f'http://127.0.0.1:8000/bookings/{booking_id}'
             res = requests.delete(url)
             if res.status_code == 200:
                 st.success('予約が削除されました')

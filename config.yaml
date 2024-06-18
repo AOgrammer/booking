@@ -6,12 +6,15 @@ credentials:
       logged_in: False # Will be managed automatically
       name: admin
       password: abc # Will be hashed automatically
-    rbriggs:
-      email: rbriggs@gmail.com
+    user:
+      email: user@gmail.com
       failed_login_attempts: 0 # Will be managed automatically
       logged_in: False # Will be managed automatically
-      name: Rebecca Briggs
+      name: user
       password: def # Will be hashed automatically
+  roles:
+    admin: ["admin"]  # 管理者ユーザーのロールリスト
+    user: ["user"]    # 一般ユーザーのロールリスト
 cookie:
   expiry_days: 30
   key: some_signature_key # Must be string
